@@ -1,0 +1,30 @@
+%% In this lab we collected heart rate data from ECG nodes and denoised/filtered the signal
+
+% Detrend data
+%dentrending the data makes it so that its average lies around the 0 mV
+[p,s,mu] = polyfit((1:numel(y))',y,5);
+f_y = polyval(p,(1:numel(y))',[],mu);
+ydetrend = y - f_y;
+%design a filter
+digFilt = designfilt('lowpassiir', 'PassbandFrequency', 60, 'StopbandFrequency', 65, 'PassbandRipple', 1, 'StopbandAttenuation', 60, 'SampleRate', 500);
+%applies filter to create new set of filtered y's
+lowpassy = filter(digFilt,ydetrend);
+%delay introduced by the lowpass iir filter
+%grpdelay(digFilt,500,Fs);
+%assign the order of the function to the variable order
+order = filtord(digFilt);
+%compensates for the shift and does zero shifting with respect to y
+lowpassy_compensated = filtfilt(digFilt,ydetrend);
+%inverts the lowpassy_compensated
+abslowpassy_compensated = abs(lowpassy_compensated);
+
+
+
+
+%plots detrended,filtered data
+figure(1)
+plot(lowpassy_compensated,'b');
+legend('Filtered Data')
+xlabel('Time(ms)');
+ylabel('Sample(mV)');
+hold on
