@@ -1,0 +1,121 @@
+%% Lab 3 -- 9/12/2018 -- Amanda Goodhines and Leah Felker
+%% Baseline data
+%uploads data and saves it as a table
+
+baselineData1 = readtable('baselineData1.txt');
+x1 = baselineData1{:,1};%use brackets to extract the data from table
+y1 = baselineData1{:,2};
+figure(1)
+plot(x1,y1)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('Baseline Data');
+hold on
+
+%% Inverted data
+invertedData = readtable('invertedData.txt');
+x2 = invertedData{:,1}; %use brackets to extract the data from table
+y2 = invertedData{:,2};
+%plots the negative inverted data on the same graph as the baseline data
+%for comparison
+plot(x2,-y2);
+legend('Baseline data', 'reinverted data');
+%plots inverted data in its own table 
+figure(2)
+plot(x2,y2)
+title('Inverted Data');
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+%% Unfiltered data
+%Does the main's filter make a difference?
+unfilteredData = readtable('unfilteredData.txt');
+x3 = unfilteredData{:,1};%use brackets to extract the data from table
+y3 = unfilteredData{:,2};
+figure(3)
+plot(x3,y3)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('Unfiltered Data');
+hold on
+%% slow frequency data
+%Does sampling rate matter? How and why?
+slowFreqData = readtable('slowFreqData.txt');
+x4 = slowFreqData{:,1};%use brackets to extract the data from table
+y4 = slowFreqData{:,2};
+figure(4)
+plot(x4,y4)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('200Hz Frequency Data');
+hold on
+%% fast frequency data
+%Does sampling rate matter? How and why?
+fastFreqData = readtable('fastFreqData.txt');
+x5 = fastFreqData{:,1};%use brackets to extract the data from table
+y5 = fastFreqData{:,2};
+figure(5)
+plot(x5,y5)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('2000Hz Frequency Data');
+hold on
+%% five sensitivity
+%Does range matter? What does it do?
+fiveSensitivity = readtable('fiveSensitivity.txt');
+x6 = fiveSensitivity{:,1};%use brackets to extract the data from table
+y6 = fiveSensitivity{:,2};
+figure(6)
+plot(x6,y6)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('5mV Sensitivity Data');
+hold on
+%% one sensitivity
+%Does range matter? What does it do?
+oneSensitivity = readtable('oneSensitivity.txt');
+x7 = oneSensitivity{:,1};%use brackets to extract the data from table
+y7 = oneSensitivity{:,2};
+figure(7)
+plot(x7,y7)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('1mV Sensitivity Data');
+hold on
+%% Forearm Data
+
+forearmData = readtable('forearmData.txt');
+x8 = forearmData{:,1};%use brackets to extract the data from table
+y8 = forearmData{:,2};
+figure(8)invertedData
+plot(x8,y8)
+xlabel('Time (ms)');
+ylabel('Voltage(mV)');
+title('Forearm Data');
+hold on
+%% Analysis for Baseline data vs inverted data
+%find the peaks for the baseline data with a minimum peak prominence of 0.5
+[pks1,locs1] = findpeaks(y1, 'MinPeakProminence', 0.5);
+peaks1 = mean(pks1);
+%finds the peaks for the inverted baseline data with a minimum peak
+%prominence of 0.5
+[pks2,locs2] = findpeaks(-y2, 'MinPeakProminence', 0.5);
+peaks2 = mean(pks2);
+ampdifference = peaks2/peaks1;
+%ampdifference = 2.8763
+%% Analysis for Baseline data vs forearm data
+
+%finds the peaks for the forearm data with a minimum peak
+%prominence of 0.5
+[pks8,locs8] = findpeaks(y8, 'MinPeakProminence', 0.5);
+peaks8 = mean(pks8);
+ampdifference = peaks8/peaks1;
+%ampdifference = 3.0121
+%% Analysis for Baseline data vs unfiltered data
+
+%finds the peaks for the forearm data with a minimum peak
+%prominence of 0.5
+[pks3,locs3] = findpeaks(y3, 'MinPeakProminence', 0.5);
+peaks3 = mean(pks3);
+%The average peak amplitude for the unfiltered data was 1.7048 
+ampdifference = peaks3/peaks1;
+%ampdifference = 3.2378
