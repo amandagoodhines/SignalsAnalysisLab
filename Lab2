@@ -1,30 +1,119 @@
-%% In this lab we collected heart rate data from ECG nodes and denoised/filtered the signal
+%%
+Week2 = readtable('lab2_500hz.txt'); %imports the data from the text file as Week2
+x1 = Week2{:,1};%use brackets to extract the data from table
+y1 = Week2{:,2};
+% sampling
+fs = 500;
+Ts = 1/fs;
 
-% Detrend data
-%dentrending the data makes it so that its average lies around the 0 mV
-[p,s,mu] = polyfit((1:numel(y))',y,5);
-f_y = polyval(p,(1:numel(y))',[],mu);
-ydetrend = y - f_y;
-%design a filter
-digFilt = designfilt('lowpassiir', 'PassbandFrequency', 60, 'StopbandFrequency', 65, 'PassbandRipple', 1, 'StopbandAttenuation', 60, 'SampleRate', 500);
-%applies filter to create new set of filtered y's
-lowpassy = filter(digFilt,ydetrend);
-%delay introduced by the lowpass iir filter
-%grpdelay(digFilt,500,Fs);
-%assign the order of the function to the variable order
-order = filtord(digFilt);
-%compensates for the shift and does zero shifting with respect to y
-lowpassy_compensated = filtfilt(digFilt,ydetrend);
-%inverts the lowpassy_compensated
-abslowpassy_compensated = abs(lowpassy_compensated);
+%time vector
+t = 0:Ts:10-Ts;
 
+%Noise
+fNoise = 60;    % Frequency [Hz]
+aNoise = 0.07;  % Amplitude
+noise1  = (aNoise*sin(2*pi.*t'.*fNoise));
+% Signal + Noise
+signalNoise1 = y1 + noise1;
 
-
-
-%plots detrended,filtered data
+%Plots the original and noisy signal in the frequency domain
 figure(1)
-plot(lowpassy_compensated,'b');
-legend('Filtered Data')
-xlabel('Time(ms)');
-ylabel('Sample(mV)');
+subplot(2,1,1);
+plot(abs(fft(y1)))%applies the fft filter to the y variable which is the voltage(amplitude of the signal)
+title('Figure 1a: Original Signal in Freq Domain')
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
 hold on
+subplot(2,1,2);
+plot(abs(fft(signalNoise1)))
+title('Figure 1b: Signal with 60Hz pure signal added in Freq Domain');
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
+
+%Plots the original and noisy signal in the time domain
+figure(2)
+subplot(2,1,1);
+plot(y1)%applies the fft filter to the y variable which is the voltage(amplitude of the signal)
+title('Original Signal in Time Domain')
+xlabel('Time (ms)')
+ylabel('Magnitude (dB)')
+hold on
+subplot(2,1,2);
+plot(signalNoise1);
+title('Noisy Signal in Time Domain');
+xlabel('Time(ms)')
+ylabel('Magnitude (dB)')
+
+
+%% All 4 plots to look at
+figure
+subplot(2,2,1);
+plot(y1)%applies the fft filter to the y variable which is the voltage(amplitude of the signal)
+title('Original Signal in Time Domain')
+xlabel('Time(ms)')
+ylabel('Magnitude (dB)')
+hold on
+subplot(2,2,3);
+plot(signalNoise1);
+title('Noisy Signal in Time Domain');
+xlabel('Time(ms)')
+ylabel('Magnitude (dB)')
+subplot(2,2,2);
+plot(abs(fft(y1)))%applies the fft filter to the y variable which is the voltage(amplitude of the signal)
+title('Signal in Freq Domain')
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
+hold on
+subplot(2,2,4);
+plot(abs(fft(signalNoise1)))
+title('Signal with 60Hz noise added in Freq Domain');
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
+%% Calculate the Heartrate
+%find peaks with a prominence of .13 of data
+[pks1,locs1] = findpeaks(y1,'MinPeakProminence', .13);
+
+%the number of peaks in the 10 second sample interval we have 
+mean(diff(x1(locs1))); 
+
+%then converts the value to bpm
+HeartRate = 60 * (1/ans); 
+
+%prints the result of the heart rate 
+fprintf('The heart rate for this sample in bpm is: %f\n', HeartRate);
+%% Create and apply a lowpass filter
+Fpass = 59.5;
+Fstop = 60.5;
+Ap = 1;
+Ast = 15;
+Fs = 500; 
+
+d = designfilt('lowpassfir','PassbandFrequency',Fpass,...
+  'StopbandFrequency',Fstop,'PassbandRipple',Ap,...
+  'StopbandAttenuation',Ast,'SampleRate',Fs);
+
+hfvt = fvtool(d);
+filteredData = filter(d,signalNoise1);
+figure
+subplot(2,1,1)
+plot(filteredData)
+title('Lowpass Filter data')
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
+subplot(2,1,2)
+plot(abs(fft(filteredData)))
+title('Freq Spectrum of filtered data')
+xlabel('Frequency (Hz)')
+ylabel('Magnitude (dB)')
+
+%% Create and apply a highpass filter
+Fpass1 = 120;
+Fstop1 = 30;
+Ap = 1;
+Ast = ;
+Fs = 500; 
+
+d = designfilt('highpassiir','PassbandFrequency',Fpass1,...
+  'StopbandFrequency',Fstop1,'PassbandRipple',Ap,...
+  'StopbandAttenuation',Ast,'SampleRate',Fs);
+hfvt = fvtool(d);
