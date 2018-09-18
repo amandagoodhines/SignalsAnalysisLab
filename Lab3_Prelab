@@ -1,15 +1,75 @@
-%% Objectives: Compare data collection factors such as sampling rate and range, quatitatively compare different leads from Einthoven’s Triangle
-%	Determine factors that affect ECG signal amplitude,	Compare different hardware and software options for collecting data, specifically ECG.
+%% 
+%501 is the number of data points
+Px = sum(abs(x).^2)/501
+Ps = sum(abs(s).^2)/501
+Pq = sum(abs(q).^2)/501
 
-%%Equation to calculate signal-to-noise (SNR) of a signal (Manually)
-%I would calculate the RMS amplitudes and use those in the above formula.
-%Where P is power, and A is amplitude.
-SNR = Psignal / Pnoise = (Asignal / Anoise)^2
+SNR = Ps/Pq
+SNR_db = 10*log10(Ps/Pq)
+PX = sum(abs(fft(x,1000)).^2)/501/1000
 
-%%Equation to calculate signal-to-noise (SNR) of a signal (function)
-%Use this form when the input signal is not necessarily sinusoidal and you have an estimate of the noise.
-%calculates the snr of signal x(dB) by computing the ratio of its summed squared magnitude to that of the noise, y. 
-%y must have the same dimensions as x.
+disp('-----');
+figure(1)
+clf
+yyaxis left
 
-r = snr(x,y);
 
+ylim([0,2])
+hold off
+
+figure(2)
+clf
+yyaxis left
+plot(1:501,abs(fft(x)))
+hold on;
+yyaxis right
+plot(1:501,ideal2)
+ylim([0,2]);
+hold off;
+
+
+SNR=mean(abs(fft(x).*ideal1).^2)/mean(abs(fft(x).*ideal2).^2)
+
+
+
+%upload data
+Week2data = readtable('Week2data.txt');
+x = Week2data{:,1};%use brackets to extract the data from table
+y = Week2data{:,2}; %signal
+%total = [x,y];% put both vectors into a matrices in case I have to try to take the fft of both at some point in the future
+% sampling
+fs = 120;
+Ts = 1/fs;
+
+%time vector
+t = 0:Ts:10-Ts;
+
+%Noise
+fNoise = 60;    % Frequency [Hz]
+aNoise = .25;  % Amplitude
+invnoise  = aNoise*sin(2*pi.*t.*fNoise);
+noise = invnoise';
+% Signal + Noise
+signalNoise = y + noise;
+%Plots the signal with the signal noise
+figure(2)
+plot(signalNoise)
+hold on 
+plot(y)
+legend('Signal with 60Hz noise added', 'Original Signal')
+hold off
+%Plots the fft of the ECG signal with 60Hz noise added in the frequency domain
+figure(1)
+plot(abs(fft(y)));
+title('ECG Signal in the Freq Domain w/ added 60Hz noise');
+
+[pks,locs] = findpeaks(y, 'MinPeakProminence', 0.1); %finds how many and where the peaks are in the signal so I should know what my graph should look like
+%%
+Fstop = 30;  % Stopband Frequency
+Fpass = 50;  % Passband Frequency
+Astop = 60;    % Stopband Attenuation (dB)
+Apass = 1;     % Passband Ripple (dB)
+Fs    = 120;   % Sampling Frequency
+%%
+%filteredSignal = highpass(y,'PassbandFrequency', Fpass, 'StopbandFrequency', Fstop, 'PassbandRipple', Apass, 'StopbandAttenuation', Astop, 'SampleRate', Fs);
+%plot(filteredSignal)
